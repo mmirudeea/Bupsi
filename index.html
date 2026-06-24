@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bupsi's Aim Trainer ❤️</title>
+    <style>
+     
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ffe6f2, #ffb3d9);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            cursor: crosshair;
+        }
+
+        #game-area {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+   
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(255, 105, 180, 0.2);
+            font-size: 24px;
+            color: #d6336c;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+      
+        #player-character {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 16px rgba(255, 105, 180, 0.1);
+            pointer-events: none;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+        }
+
+        #player-icon {
+            font-size: 40px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        #player-weapon {
+            font-size: 25px;
+            margin-left: -5px;
+        }
+
+        #player-status-text {
+            font-size: 18px;
+            color: #d6336c;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+       
+        .target {
+            position: absolute;
+            font-size: 50px;
+            cursor: crosshair;
+            user-select: none;
+            transition: transform 0.1s ease-out;
+            animation: popIn 0.2s ease-out;
+        }
+
+        .target:active {
+            transform: scale(0.7);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .floating-text {
+            position: absolute;
+            color: #ff1493;
+            font-size: 22px;
+            font-weight: bold;
+            pointer-events: none; 
+            z-index: 20;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.9);
+            animation: floatUpFade 1s ease-out forwards;
+        }
+
+        @keyframes floatUpFade {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">Scor: <span id="score">0</span> | Timp: <span id="time">30</span>s</div>
+    
+    <div id="player-character">
+        <div id="player-icon">😎<span id="player-weapon">🔫</span></div>
+        <div id="player-status-text">
+            <div>Tactical Bupsi</div>
+            <div style="font-size: 14px; opacity: 0.8;">Iubitul meu ❤️</div>
+        </div>
+    </div>
+
+    <div id="game-area"></div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+        let gameActive = true;
+        
+        const gameArea = document.getElementById('game-area');
+        const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
+
+   
+        const mesajeDeIubire = [
+            "Hai regele meu! 👑",
+            "Hai campionul meu la CS! 🔫",
+            "Hai leul meu! 🦁",
+            "Hai iubirea mea! ❤️",
+            "Te iubesc! 🥰"
+        ];
+
+      
+        function showFloatingText(x, y) {
+            const floatingText = document.createElement('div');
+            
+            const randomMessage = mesajeDeIubire[Math.floor(Math.random() * mesajeDeIubire.length)];
+            floatingText.innerText = randomMessage;
+            floatingText.className = 'floating-text';
+           
+            floatingText.style.left = `${x}px`;
+            floatingText.style.top = `${y}px`;
+
+            gameArea.appendChild(floatingText);
+
+        
+            setTimeout(() => {
+                floatingText.remove();
+            }, 1000);
+        }
+
+       
+        function spawnTarget() {
+            if (!gameActive) return;
+
+            const target = document.createElement('div');
+            target.innerHTML = '❤️';
+            target.className = 'target';
+
+            const maxX = window.innerWidth - 60;
+            const maxY = window.innerHeight - 60;
+         
+            const x = Math.random() * (maxX - 100) + 50;
+            const y = Math.random() * (maxY - 250) + 100; 
+
+            target.style.left = `${x}px`;
+            target.style.top = `${y}px`;
+
+            target.onmousedown = (event) => {
+                if (!gameActive) return;
+                
+                score++;
+                scoreDisplay.innerText = score;
+             
+                showFloatingText(event.clientX, event.clientY);
+                
+                target.remove();
+                spawnTarget();
+            };
+
+            gameArea.appendChild(target);
+
+            setTimeout(() => {
+                if (target.parentNode) {
+                    target.remove();
+                    spawnTarget();
+                }
+            }, 1200); 
+        }
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            timeDisplay.innerText = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                gameActive = false;
+                gameArea.innerHTML = ''; 
+                
+                setTimeout(() => {
+                    alert(`Gata meciul! Ai un scor de ${score}!\nCampionul meu la CS, te iubesc enorm! ❤️`);
+                }, 100);
+            }
+        }, 1000);
+
+
+        spawnTarget();
+        spawnTarget();
+    </script>
+</body>
+</html>
